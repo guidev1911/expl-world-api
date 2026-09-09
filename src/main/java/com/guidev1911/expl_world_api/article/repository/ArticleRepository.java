@@ -10,7 +10,23 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
 
     Optional<Article> findByTopicIdAndSlug(Long topicId, String slug);
 
-    List<Article> findAllByTopicIdAndPublishedTrue(Long topicId);
+    Optional<Article> findByTopicIdAndSlugAndPublishedTrue(
+            Long topicId,
+            String slug
+    );
 
-    boolean existsByTopicIdAndSlug(Long topicId, String slug);
+    List<Article> findAllByTopicIdAndPublishedTrueOrderByTitleAsc(
+            Long topicId
+    );
+
+    boolean existsByTopicIdAndSlug(
+            Long topicId,
+            String slug
+    );
+
+    boolean existsByTopicIdAndSlugAndIdNot(
+            Long topicId,
+            String slug,
+            Long id
+    );
 }
