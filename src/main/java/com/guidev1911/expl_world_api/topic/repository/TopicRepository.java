@@ -10,7 +10,23 @@ public interface TopicRepository extends JpaRepository<Topic, Long> {
 
     Optional<Topic> findByCategoryIdAndSlug(Long categoryId, String slug);
 
-    List<Topic> findAllByCategoryIdAndActiveTrue(Long categoryId);
+    Optional<Topic> findByCategoryIdAndSlugAndActiveTrue(
+            Long categoryId,
+            String slug
+    );
 
-    boolean existsByCategoryIdAndSlug(Long categoryId, String slug);
+    List<Topic> findAllByCategoryIdAndActiveTrueOrderByNameAsc(
+            Long categoryId
+    );
+
+    boolean existsByCategoryIdAndSlug(
+            Long categoryId,
+            String slug
+    );
+
+    boolean existsByCategoryIdAndSlugAndIdNot(
+            Long categoryId,
+            String slug,
+            Long id
+    );
 }
