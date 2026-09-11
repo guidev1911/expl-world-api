@@ -7,6 +7,8 @@ import com.guidev1911.expl_world_api.category.service.CategoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,8 +31,12 @@ public class CategoryController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CategoryResponse>> findAll() {
-        return ResponseEntity.ok(categoryService.findAll());
+    public ResponseEntity<Page<CategoryResponse>> findAll(
+            Pageable pageable
+    ) {
+        return ResponseEntity.ok(
+                categoryService.findAll(pageable)
+        );
     }
 
     @GetMapping("/{slug}")

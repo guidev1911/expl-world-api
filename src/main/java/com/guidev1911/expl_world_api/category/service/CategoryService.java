@@ -9,6 +9,8 @@ import com.guidev1911.expl_world_api.exception.BusinessException;
 import com.guidev1911.expl_world_api.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -39,12 +41,11 @@ public class CategoryService {
     }
 
     @Transactional(readOnly = true)
-    public List<CategoryResponse> findAll() {
+    public Page<CategoryResponse> findAll(Pageable pageable) {
 
-        return categoryRepository.findAllByActiveTrueOrderByNameAsc()
-                .stream()
-                .map(this::toResponse)
-                .toList();
+        return categoryRepository
+                .findAllByActiveTrue(pageable)
+                .map(this::toResponse);
     }
 
     @Transactional(readOnly = true)
