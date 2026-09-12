@@ -10,6 +10,8 @@ import com.guidev1911.expl_world_api.article.repository.ArticleSectionRepository
 import com.guidev1911.expl_world_api.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -44,18 +46,20 @@ public class ArticleSectionService {
     }
 
     @Transactional(readOnly = true)
-    public List<ArticleSectionResponse> findAllByArticle(
-            Long articleId
+    public Page<ArticleSectionResponse> findAllByArticle(
+            Long articleId,
+            Pageable pageable
     ) {
         if (!articleRepository.existsById(articleId)) {
             throw new ResourceNotFoundException("Article not found");
         }
 
         return sectionRepository
-                .findAllByArticleIdAndActiveTrueOrderByDisplayOrderAsc(articleId)
-                .stream()
-                .map(this::toResponse)
-                .toList();
+                .findAllByArticleIdAndActiveTrueOrderByDisplayOrderAsc(
+                        articleId,
+                        pageable
+                )
+                .map(this::toResponse);
     }
 
     @Transactional

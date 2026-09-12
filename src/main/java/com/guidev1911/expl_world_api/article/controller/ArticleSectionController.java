@@ -7,6 +7,8 @@ import com.guidev1911.expl_world_api.article.service.ArticleSectionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,14 +31,17 @@ public class ArticleSectionController {
     }
 
     @GetMapping("/article/{articleId}")
-    public ResponseEntity<List<ArticleSectionResponse>> findAllByArticle(
-            @PathVariable Long articleId
+    public ResponseEntity<Page<ArticleSectionResponse>> findAllByArticle(
+            @PathVariable Long articleId,
+            Pageable pageable
     ) {
         return ResponseEntity.ok(
-                articleSectionService.findAllByArticle(articleId)
+                articleSectionService.findAllByArticle(
+                        articleId,
+                        pageable
+                )
         );
     }
-
     @PutMapping("/{id}")
     public ResponseEntity<ArticleSectionResponse> update(
             @PathVariable Long id,
