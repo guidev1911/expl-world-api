@@ -10,6 +10,8 @@ import com.guidev1911.expl_world_api.topic.dto.response.TopicResponse;
 import com.guidev1911.expl_world_api.topic.entity.Topic;
 import com.guidev1911.expl_world_api.topic.repository.TopicRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,17 +56,17 @@ public class TopicService {
     }
 
     @Transactional(readOnly = true)
-    public List<TopicResponse> findAllByCategory(Long categoryId) {
-
+    public Page<TopicResponse> findAllByCategory(
+            Long categoryId,
+            Pageable pageable
+    ) {
         if (!categoryRepository.existsById(categoryId)) {
             throw new ResourceNotFoundException("Category not found");
         }
 
         return topicRepository
-                .findAllByCategoryIdAndActiveTrueOrderByNameAsc(categoryId)
-                .stream()
-                .map(this::toResponse)
-                .toList();
+                .findAllByCategoryIdAndActiveTrue(categoryId, pageable)
+                .map(this::toResponse);
     }
 
     @Transactional(readOnly = true)
