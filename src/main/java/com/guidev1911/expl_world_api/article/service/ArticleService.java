@@ -9,6 +9,8 @@ import com.guidev1911.expl_world_api.exception.BusinessException;
 import com.guidev1911.expl_world_api.exception.ResourceNotFoundException;
 import com.guidev1911.expl_world_api.topic.entity.Topic;
 import com.guidev1911.expl_world_api.topic.repository.TopicRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,17 +64,17 @@ public class ArticleService {
     }
 
     @Transactional(readOnly = true)
-    public List<ArticleResponse> findAllByTopic(Long topicId) {
-
+    public Page<ArticleResponse> findAllByTopic(
+            Long topicId,
+            Pageable pageable
+    ) {
         if (!topicRepository.existsById(topicId)) {
             throw new ResourceNotFoundException("Topic not found");
         }
 
         return articleRepository
-                .findAllByTopicIdAndPublishedTrueOrderByTitleAsc(topicId)
-                .stream()
-                .map(this::toResponse)
-                .toList();
+                .findAllByTopicIdAndPublishedTrue(topicId, pageable)
+                .map(this::toResponse);
     }
 
     @Transactional(readOnly = true)

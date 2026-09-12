@@ -7,6 +7,8 @@ import com.guidev1911.expl_world_api.article.service.ArticleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,11 +31,12 @@ public class ArticleController {
     }
 
     @GetMapping("/topic/{topicId}")
-    public ResponseEntity<List<ArticleResponse>> findAllByTopic(
-            @PathVariable Long topicId
+    public ResponseEntity<Page<ArticleResponse>> findAllByTopic(
+            @PathVariable Long topicId,
+            Pageable pageable
     ) {
         return ResponseEntity.ok(
-                articleService.findAllByTopic(topicId)
+                articleService.findAllByTopic(topicId, pageable)
         );
     }
 

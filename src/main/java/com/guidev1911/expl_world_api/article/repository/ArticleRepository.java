@@ -2,6 +2,8 @@ package com.guidev1911.expl_world_api.article.repository;
 
 import com.guidev1911.expl_world_api.article.entity.Article;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,8 +17,9 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
             String slug
     );
 
-    List<Article> findAllByTopicIdAndPublishedTrueOrderByTitleAsc(
-            Long topicId
+    Page<Article> findAllByTopicIdAndPublishedTrue(
+            Long topicId,
+            Pageable pageable
     );
 
     boolean existsByTopicIdAndSlug(
