@@ -10,7 +10,8 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-
+import com.guidev1911.expl_world_api.topic.entity.Topic;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -68,5 +69,38 @@ class TopicIntegrationTest {
                         "sharks-integration-test"
                 )
         );
+    }
+    @Test
+    void shouldGetTopicBySlug() throws Exception {
+
+        Category category = categoryRepository.save(
+                Category.builder()
+                        .name("Animals Get")
+                        .slug("animals-topic-get-test")
+                        .description("Animals")
+                        .active(true)
+                        .build()
+        );
+
+        topicRepository.save(
+                Topic.builder()
+                        .name("Sharks")
+                        .slug("sharks-get-test")
+                        .description("Shark topics")
+                        .category(category)
+                        .active(true)
+                        .build()
+        );
+
+        mockMvc.perform(
+                        get("/api/v1/topics/category/"
+                                + category.getId()
+                                + "/sharks-get-test")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Sharks"))
+                .andExpect(jsonPath("$.slug").value("sharks-get-test"))
+                .andExpect(jsonPath("$.categoryId").value(category.getId()))
+                .andExpect(jsonPath("$.categoryName").value("Animals Get"));
     }
 }
