@@ -1,0 +1,89 @@
+package com.guidev1911.expl_world_api.article;
+
+import com.guidev1911.expl_world_api.topic.entity.Topic;
+import com.guidev1911.expl_world_api.topic.repository.TopicRepository;
+import com.guidev1911.expl_world_api.category.entity.Category;
+import com.guidev1911.expl_world_api.category.repository.CategoryRepository;
+import com.guidev1911.expl_world_api.article.repository.ArticleRepository;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@Transactional
+class ArticleIntegrationTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Autowired
+    private TopicRepository topicRepository;
+
+    @Autowired
+    private ArticleRepository articleRepository;
+
+    @Test
+    void shouldCreateArticle() throws Exception {
+
+        Category category = categoryRepository.save(
+                Category.builder()
+                        .name("Animals Article")
+                        .slug("animals-article-integration")
+                        .description("Animals")
+                        .active(true)
+                        .build()
+        );
+
+        Topic topic = topicRepository.save(
+                Topic.builder()
+                        .name("Sharks")
+                        .slug("sharks-article-integration")
+                        .description("Sharks")
+                        .category(category)
+                        .active(true)
+                        .build()
+        );
+
+        String request = """
+                {
+                    "title": "Great White Shark",
+                    "slug": "great-white-shark-integration",
+                    "shortDescription": "Everything about the great white shark.",
+                    "description": "An educational article about great white sharks.",
+                    "published": true,
+                    "topicId": %d
+                }
+                """.formatted(topic.getId());
+
+        mockMvc.perform(
+                        post("/api/v1/articles")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(request)
+                )
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.title").value("Great White Shark"))
+                .andExpect(jsonPath("$.slug")
+                        .value("great-white-shark-integration"))
+                .andExpect(jsonPath("$.published").value(true))
+                .andExpect(jsonPath("$.topicId").value(topic.getId()));
+
+        assertTrue(
+                articleRepository.existsByTopicIdAndSlug(
+                        topic.getId(),
+                        "great-white-shark-integration"
+                )
+        );
+    }
+}
