@@ -201,4 +201,51 @@ class TopicIntegrationTest {
 
         assertFalse(deletedTopic.getActive());
     }
+    @Test
+    void shouldListTopicsByCategoryWithPagination() throws Exception {
+
+        Category category = categoryRepository.save(
+                Category.builder()
+                        .name("Animals Pagination")
+                        .slug("animals-topic-pagination")
+                        .description("Animals")
+                        .active(true)
+                        .build()
+        );
+
+        topicRepository.save(
+                Topic.builder()
+                        .name("Sharks")
+                        .slug("sharks-pagination-test")
+                        .description("Sharks")
+                        .category(category)
+                        .active(true)
+                        .build()
+        );
+
+        topicRepository.save(
+                Topic.builder()
+                        .name("Whales")
+                        .slug("whales-pagination-test")
+                        .description("Whales")
+                        .category(category)
+                        .active(true)
+                        .build()
+        );
+
+        mockMvc.perform(
+                        get("/api/v1/topics/category/" + category.getId())
+                                .param("page", "0")
+                                .param("size", "10")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[*].slug")
+                        .value(org.hamcrest.Matchers.hasItems(
+                                "sharks-pagination-test",
+                                "whales-pagination-test"
+                        )))
+                .andExpect(jsonPath("$.number").value(0))
+                .andExpect(jsonPath("$.size").value(10));
+    }
 }
