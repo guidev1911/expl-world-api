@@ -10,9 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import com.guidev1911.expl_world_api.article.entity.Article;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -85,5 +86,48 @@ class ArticleIntegrationTest {
                         "great-white-shark-integration"
                 )
         );
+    }
+    @Test
+    void shouldGetArticleBySlug() throws Exception {
+
+        Category category = categoryRepository.save(
+                Category.builder()
+                        .name("Animals Article Get")
+                        .slug("animals-article-get")
+                        .active(true)
+                        .build()
+        );
+
+        Topic topic = topicRepository.save(
+                Topic.builder()
+                        .name("Sharks")
+                        .slug("sharks-article-get")
+                        .category(category)
+                        .active(true)
+                        .build()
+        );
+
+        articleRepository.save(
+                Article.builder()
+                        .title("Great White Shark")
+                        .slug("great-white-shark-get")
+                        .shortDescription("About great white sharks.")
+                        .description("Educational content.")
+                        .published(true)
+                        .topic(topic)
+                        .build()
+        );
+
+        mockMvc.perform(
+                        get("/api/v1/articles/topic/"
+                                + topic.getId()
+                                + "/great-white-shark-get")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Great White Shark"))
+                .andExpect(jsonPath("$.slug").value("great-white-shark-get"))
+                .andExpect(jsonPath("$.published").value(true))
+                .andExpect(jsonPath("$.topicId").value(topic.getId()))
+                .andExpect(jsonPath("$.topicName").value("Sharks"));
     }
 }
