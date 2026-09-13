@@ -130,4 +130,32 @@ class ArticleIntegrationTest {
                 .andExpect(jsonPath("$.topicId").value(topic.getId()))
                 .andExpect(jsonPath("$.topicName").value("Sharks"));
     }
+    @Test
+    void shouldReturn404WhenArticleDoesNotExist() throws Exception {
+
+        Category category = categoryRepository.save(
+                Category.builder()
+                        .name("Animals Article Not Found")
+                        .slug("animals-article-not-found")
+                        .active(true)
+                        .build()
+        );
+
+        Topic topic = topicRepository.save(
+                Topic.builder()
+                        .name("Sharks")
+                        .slug("sharks-article-not-found")
+                        .category(category)
+                        .active(true)
+                        .build()
+        );
+
+        mockMvc.perform(
+                        get("/api/v1/articles/topic/"
+                                + topic.getId()
+                                + "/article-does-not-exist")
+                )
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Article not found"));
+    }
 }
