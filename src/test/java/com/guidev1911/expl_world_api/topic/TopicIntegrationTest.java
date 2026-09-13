@@ -10,6 +10,8 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import com.guidev1911.expl_world_api.topic.entity.Topic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -166,5 +168,37 @@ class TopicIntegrationTest {
                 .andExpect(jsonPath("$.slug").value("great-white-sharks"))
                 .andExpect(jsonPath("$.description").value("New description"))
                 .andExpect(jsonPath("$.categoryId").value(category.getId()));
+    }
+    @Test
+    void shouldDeleteTopic() throws Exception {
+
+        Category category = categoryRepository.save(
+                Category.builder()
+                        .name("Animals Delete")
+                        .slug("animals-topic-delete")
+                        .description("Animals")
+                        .active(true)
+                        .build()
+        );
+
+        Topic topic = topicRepository.save(
+                Topic.builder()
+                        .name("Sharks")
+                        .slug("sharks-delete-test")
+                        .description("Delete test")
+                        .category(category)
+                        .active(true)
+                        .build()
+        );
+
+        mockMvc.perform(
+                        delete("/api/v1/topics/" + topic.getId())
+                )
+                .andExpect(status().isNoContent());
+
+        var deletedTopic = topicRepository.findById(topic.getId())
+                .orElseThrow();
+
+        assertFalse(deletedTopic.getActive());
     }
 }
