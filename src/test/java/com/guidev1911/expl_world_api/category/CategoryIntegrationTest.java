@@ -127,4 +127,40 @@ class CategoryIntegrationTest {
 
         assertFalse(deletedCategory.getActive());
     }
+    @Test
+    void shouldListCategoriesWithPagination() throws Exception {
+
+        categoryRepository.save(
+                Category.builder()
+                        .name("Animals Pagination")
+                        .slug("animals-pagination-test")
+                        .description("Animals")
+                        .active(true)
+                        .build()
+        );
+
+        categoryRepository.save(
+                Category.builder()
+                        .name("Technology Pagination")
+                        .slug("technology-pagination-test")
+                        .description("Technology")
+                        .active(true)
+                        .build()
+        );
+
+        mockMvc.perform(
+                        get("/api/v1/categories")
+                                .param("page", "0")
+                                .param("size", "10")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[*].slug")
+                        .value(org.hamcrest.Matchers.hasItems(
+                                "animals-pagination-test",
+                                "technology-pagination-test"
+                        )))
+                .andExpect(jsonPath("$.number").value(0))
+                .andExpect(jsonPath("$.size").value(10));
+    }
 }
