@@ -8,6 +8,8 @@ import com.guidev1911.expl_world_api.article.repository.ArticleRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
@@ -213,5 +215,46 @@ class ArticleIntegrationTest {
                         .value("Updated short description."))
                 .andExpect(jsonPath("$.published").value(true))
                 .andExpect(jsonPath("$.topicId").value(topic.getId()));
+    }
+    @Test
+    void shouldDeleteArticle() throws Exception {
+
+        Category category = categoryRepository.save(
+                Category.builder()
+                        .name("Animals Article Delete")
+                        .slug("animals-article-delete")
+                        .active(true)
+                        .build()
+        );
+
+        Topic topic = topicRepository.save(
+                Topic.builder()
+                        .name("Sharks")
+                        .slug("sharks-article-delete")
+                        .category(category)
+                        .active(true)
+                        .build()
+        );
+
+        Article article = articleRepository.save(
+                Article.builder()
+                        .title("Article Delete Test")
+                        .slug("article-delete-test")
+                        .shortDescription("Delete test")
+                        .description("Delete test content")
+                        .published(true)
+                        .topic(topic)
+                        .build()
+        );
+
+        mockMvc.perform(
+                        delete("/api/v1/articles/" + article.getId())
+                )
+                .andExpect(status().isNoContent());
+
+        var deletedArticle = articleRepository.findById(article.getId())
+                .orElseThrow();
+
+        assertFalse(deletedArticle.getPublished());
     }
 }
