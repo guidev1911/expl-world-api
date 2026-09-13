@@ -257,4 +257,61 @@ class ArticleIntegrationTest {
 
         assertFalse(deletedArticle.getPublished());
     }
+    @Test
+    void shouldListArticlesByTopicWithPagination() throws Exception {
+
+        Category category = categoryRepository.save(
+                Category.builder()
+                        .name("Animals Article Pagination")
+                        .slug("animals-article-pagination")
+                        .active(true)
+                        .build()
+        );
+
+        Topic topic = topicRepository.save(
+                Topic.builder()
+                        .name("Sharks")
+                        .slug("sharks-article-pagination")
+                        .category(category)
+                        .active(true)
+                        .build()
+        );
+
+        articleRepository.save(
+                Article.builder()
+                        .title("Great White Shark")
+                        .slug("great-white-pagination-test")
+                        .shortDescription("Great white shark.")
+                        .description("Content")
+                        .published(true)
+                        .topic(topic)
+                        .build()
+        );
+
+        articleRepository.save(
+                Article.builder()
+                        .title("Hammerhead Shark")
+                        .slug("hammerhead-pagination-test")
+                        .shortDescription("Hammerhead shark.")
+                        .description("Content")
+                        .published(true)
+                        .topic(topic)
+                        .build()
+        );
+
+        mockMvc.perform(
+                        get("/api/v1/articles/topic/" + topic.getId())
+                                .param("page", "0")
+                                .param("size", "10")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[*].slug")
+                        .value(org.hamcrest.Matchers.hasItems(
+                                "great-white-pagination-test",
+                                "hammerhead-pagination-test"
+                        )))
+                .andExpect(jsonPath("$.number").value(0))
+                .andExpect(jsonPath("$.size").value(10));
+    }
 }
