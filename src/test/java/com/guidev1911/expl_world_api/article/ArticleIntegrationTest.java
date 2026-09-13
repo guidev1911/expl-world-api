@@ -8,6 +8,7 @@ import com.guidev1911.expl_world_api.article.repository.ArticleRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import com.guidev1911.expl_world_api.article.entity.Article;
@@ -157,5 +158,60 @@ class ArticleIntegrationTest {
                 )
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Article not found"));
+    }
+    @Test
+    void shouldUpdateArticle() throws Exception {
+
+        Category category = categoryRepository.save(
+                Category.builder()
+                        .name("Animals Article Update")
+                        .slug("animals-article-update")
+                        .active(true)
+                        .build()
+        );
+
+        Topic topic = topicRepository.save(
+                Topic.builder()
+                        .name("Sharks")
+                        .slug("sharks-article-update")
+                        .category(category)
+                        .active(true)
+                        .build()
+        );
+
+        Article article = articleRepository.save(
+                Article.builder()
+                        .title("Old Title")
+                        .slug("old-article-slug")
+                        .shortDescription("Old description")
+                        .description("Old content")
+                        .published(true)
+                        .topic(topic)
+                        .build()
+        );
+
+        String request = """
+            {
+                "title": "Great White Shark",
+                "slug": "great-white-shark-updated",
+                "shortDescription": "Updated short description.",
+                "description": "Updated content.",
+                "published": true,
+                "topicId": %d
+            }
+            """.formatted(topic.getId());
+
+        mockMvc.perform(
+                        put("/api/v1/articles/" + article.getId())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(request)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Great White Shark"))
+                .andExpect(jsonPath("$.slug").value("great-white-shark-updated"))
+                .andExpect(jsonPath("$.shortDescription")
+                        .value("Updated short description."))
+                .andExpect(jsonPath("$.published").value(true))
+                .andExpect(jsonPath("$.topicId").value(topic.getId()));
     }
 }
