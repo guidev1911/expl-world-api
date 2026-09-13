@@ -10,6 +10,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -102,5 +104,27 @@ class CategoryIntegrationTest {
                 .andExpect(jsonPath("$.name").value("Animals Updated"))
                 .andExpect(jsonPath("$.slug").value("animals-updated"))
                 .andExpect(jsonPath("$.description").value("New description"));
+    }
+    @Test
+    void shouldDeleteCategory() throws Exception {
+
+        var category = categoryRepository.save(
+                Category.builder()
+                        .name("Category Delete Test")
+                        .slug("category-delete-test")
+                        .description("Delete test")
+                        .active(true)
+                        .build()
+        );
+
+        mockMvc.perform(
+                        delete("/api/v1/categories/" + category.getId())
+                )
+                .andExpect(status().isNoContent());
+
+        var deletedCategory = categoryRepository.findById(category.getId())
+                .orElseThrow();
+
+        assertFalse(deletedCategory.getActive());
     }
 }
