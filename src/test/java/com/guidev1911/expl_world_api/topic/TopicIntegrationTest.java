@@ -103,4 +103,24 @@ class TopicIntegrationTest {
                 .andExpect(jsonPath("$.categoryId").value(category.getId()))
                 .andExpect(jsonPath("$.categoryName").value("Animals Get"));
     }
+    @Test
+    void shouldReturn404WhenTopicDoesNotExist() throws Exception {
+
+        Category category = categoryRepository.save(
+                Category.builder()
+                        .name("Animals Not Found")
+                        .slug("animals-topic-not-found")
+                        .description("Animals")
+                        .active(true)
+                        .build()
+        );
+
+        mockMvc.perform(
+                        get("/api/v1/topics/category/"
+                                + category.getId()
+                                + "/topic-does-not-exist")
+                )
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Topic not found"));
+    }
 }
