@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import com.guidev1911.expl_world_api.topic.entity.Topic;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -122,5 +123,48 @@ class TopicIntegrationTest {
                 )
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Topic not found"));
+    }
+    @Test
+    void shouldUpdateTopic() throws Exception {
+
+        Category category = categoryRepository.save(
+                Category.builder()
+                        .name("Animals Update")
+                        .slug("animals-topic-update")
+                        .description("Animals")
+                        .active(true)
+                        .build()
+        );
+
+        Topic topic = topicRepository.save(
+                Topic.builder()
+                        .name("Sharks")
+                        .slug("sharks-update-test")
+                        .description("Old description")
+                        .category(category)
+                        .active(true)
+                        .build()
+        );
+
+        String request = """
+            {
+                "name": "Great White Sharks",
+                "slug": "great-white-sharks",
+                "description": "New description",
+                "active": true,
+                "categoryId": %d
+            }
+            """.formatted(category.getId());
+
+        mockMvc.perform(
+                        put("/api/v1/topics/" + topic.getId())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(request)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Great White Sharks"))
+                .andExpect(jsonPath("$.slug").value("great-white-sharks"))
+                .andExpect(jsonPath("$.description").value("New description"))
+                .andExpect(jsonPath("$.categoryId").value(category.getId()));
     }
 }
