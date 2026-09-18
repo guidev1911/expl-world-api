@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -103,5 +104,73 @@ class ArticleSectionIntegrationTest {
                                         && section.getTitle().equals("Habitat")
                         )
         );
+    }
+    @Test
+    void shouldListArticleSectionsWithPagination() throws Exception {
+
+        Category category = categoryRepository.save(
+                Category.builder()
+                        .name("Animals Sections Pagination")
+                        .slug("animals-sections-pagination")
+                        .active(true)
+                        .build()
+        );
+
+        Topic topic = topicRepository.save(
+                Topic.builder()
+                        .name("Sharks")
+                        .slug("sharks-sections-pagination")
+                        .category(category)
+                        .active(true)
+                        .build()
+        );
+
+        Article article = articleRepository.save(
+                Article.builder()
+                        .title("Great White Shark")
+                        .slug("great-white-sections-pagination")
+                        .shortDescription("About great white sharks.")
+                        .description("Educational content.")
+                        .published(true)
+                        .topic(topic)
+                        .build()
+        );
+
+        articleSectionRepository.save(
+                ArticleSection.builder()
+                        .title("Diet")
+                        .content("Great white sharks eat fish and marine mammals.")
+                        .sectionType("DIET")
+                        .displayOrder(2)
+                        .active(true)
+                        .article(article)
+                        .build()
+        );
+
+        articleSectionRepository.save(
+                ArticleSection.builder()
+                        .title("Habitat")
+                        .content("They live in coastal waters.")
+                        .sectionType("HABITAT")
+                        .displayOrder(1)
+                        .active(true)
+                        .article(article)
+                        .build()
+        );
+
+        mockMvc.perform(
+                        get("/api/v1/article-sections/article/" + article.getId())
+                                .param("page", "0")
+                                .param("size", "10")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.content[0].title").value("Habitat"))
+                .andExpect(jsonPath("$.content[0].displayOrder").value(1))
+                .andExpect(jsonPath("$.content[1].title").value("Diet"))
+                .andExpect(jsonPath("$.content[1].displayOrder").value(2))
+                .andExpect(jsonPath("$.number").value(0))
+                .andExpect(jsonPath("$.size").value(10));
     }
 }
