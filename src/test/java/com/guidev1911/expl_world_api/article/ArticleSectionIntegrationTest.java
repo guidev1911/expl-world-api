@@ -16,7 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import org.springframework.transaction.annotation.Transactional;
-
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -172,5 +172,71 @@ class ArticleSectionIntegrationTest {
                 .andExpect(jsonPath("$.content[1].displayOrder").value(2))
                 .andExpect(jsonPath("$.number").value(0))
                 .andExpect(jsonPath("$.size").value(10));
+    }
+    @Test
+    void shouldUpdateArticleSection() throws Exception {
+
+        Category category = categoryRepository.save(
+                Category.builder()
+                        .name("Animals Section Update")
+                        .slug("animals-section-update")
+                        .active(true)
+                        .build()
+        );
+
+        Topic topic = topicRepository.save(
+                Topic.builder()
+                        .name("Sharks")
+                        .slug("sharks-section-update")
+                        .category(category)
+                        .active(true)
+                        .build()
+        );
+
+        Article article = articleRepository.save(
+                Article.builder()
+                        .title("Great White Shark")
+                        .slug("great-white-section-update")
+                        .shortDescription("About sharks.")
+                        .description("Educational content.")
+                        .published(true)
+                        .topic(topic)
+                        .build()
+        );
+
+        ArticleSection section = articleSectionRepository.save(
+                ArticleSection.builder()
+                        .title("Old Title")
+                        .content("Old content")
+                        .sectionType("OVERVIEW")
+                        .displayOrder(1)
+                        .active(true)
+                        .article(article)
+                        .build()
+        );
+
+        String request = """
+            {
+                "title": "Habitat",
+                "content": "Great white sharks live in coastal waters.",
+                "sectionType": "habitat",
+                "displayOrder": 2,
+                "active": true
+            }
+            """;
+
+        mockMvc.perform(
+                        put("/api/v1/article-sections/" + section.getId())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(request)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Habitat"))
+                .andExpect(jsonPath("$.content")
+                        .value("Great white sharks live in coastal waters."))
+                .andExpect(jsonPath("$.sectionType").value("HABITAT"))
+                .andExpect(jsonPath("$.displayOrder").value(2))
+                .andExpect(jsonPath("$.active").value(true))
+                .andExpect(jsonPath("$.articleId").value(article.getId()));
     }
 }
