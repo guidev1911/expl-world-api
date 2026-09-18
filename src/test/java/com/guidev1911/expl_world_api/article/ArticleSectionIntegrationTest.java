@@ -9,6 +9,8 @@ import com.guidev1911.expl_world_api.category.repository.CategoryRepository;
 import com.guidev1911.expl_world_api.topic.entity.Topic;
 import com.guidev1911.expl_world_api.topic.repository.TopicRepository;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -238,5 +240,58 @@ class ArticleSectionIntegrationTest {
                 .andExpect(jsonPath("$.displayOrder").value(2))
                 .andExpect(jsonPath("$.active").value(true))
                 .andExpect(jsonPath("$.articleId").value(article.getId()));
+    }
+    @Test
+    void shouldDeleteArticleSection() throws Exception {
+
+        Category category = categoryRepository.save(
+                Category.builder()
+                        .name("Animals Section Delete")
+                        .slug("animals-section-delete")
+                        .active(true)
+                        .build()
+        );
+
+        Topic topic = topicRepository.save(
+                Topic.builder()
+                        .name("Sharks")
+                        .slug("sharks-section-delete")
+                        .category(category)
+                        .active(true)
+                        .build()
+        );
+
+        Article article = articleRepository.save(
+                Article.builder()
+                        .title("Great White Shark")
+                        .slug("great-white-section-delete")
+                        .shortDescription("About sharks.")
+                        .description("Educational content.")
+                        .published(true)
+                        .topic(topic)
+                        .build()
+        );
+
+        ArticleSection section = articleSectionRepository.save(
+                ArticleSection.builder()
+                        .title("Facts")
+                        .content("Interesting facts about sharks.")
+                        .sectionType("FACTS")
+                        .displayOrder(1)
+                        .active(true)
+                        .article(article)
+                        .build()
+        );
+
+        mockMvc.perform(
+                        delete("/api/v1/article-sections/" + section.getId())
+                )
+                .andExpect(status().isNoContent());
+
+        var deletedSection = articleSectionRepository
+                .findById(section.getId())
+                .orElseThrow();
+
+        assertFalse(deletedSection.getActive());
     }
 }
