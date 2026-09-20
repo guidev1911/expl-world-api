@@ -160,7 +160,7 @@ class CategoryIntegrationTest {
                                 "animals-pagination-test",
                                 "technology-pagination-test"
                         )))
-                .andExpect(jsonPath("$.number").value(0))
-                .andExpect(jsonPath("$.size").value(10));
+                .andExpect(jsonPath("$.page.number").value(0))
+                .andExpect(jsonPath("$.page.size").value(10));
     }
 }

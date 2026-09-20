@@ -172,8 +172,8 @@ class ArticleSectionIntegrationTest {
                 .andExpect(jsonPath("$.content[0].displayOrder").value(1))
                 .andExpect(jsonPath("$.content[1].title").value("Diet"))
                 .andExpect(jsonPath("$.content[1].displayOrder").value(2))
-                .andExpect(jsonPath("$.number").value(0))
-                .andExpect(jsonPath("$.size").value(10));
+                .andExpect(jsonPath("$.page.number").value(0))
+                .andExpect(jsonPath("$.page.size").value(10));
     }
     @Test
     void shouldUpdateArticleSection() throws Exception {
