@@ -163,4 +163,23 @@ class CategoryIntegrationTest {
                 .andExpect(jsonPath("$.page.number").value(0))
                 .andExpect(jsonPath("$.page.size").value(10));
     }
+    @Test
+    void shouldReturn400WhenCreatingCategoryWithInvalidData() throws Exception {
+
+        String request = """
+            {
+                "name": "",
+                "slug": "",
+                "description": "Invalid category"
+            }
+            """;
+
+        mockMvc.perform(
+                        post("/api/v1/categories")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(request)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors").exists());
+    }
 }
