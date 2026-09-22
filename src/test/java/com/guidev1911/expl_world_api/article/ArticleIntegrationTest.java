@@ -387,4 +387,67 @@ class ArticleIntegrationTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").exists());
     }
+    @Test
+    void shouldReturn409WhenUpdatingArticleWithDuplicateSlug() throws Exception {
+
+        Category category = categoryRepository.save(
+                Category.builder()
+                        .name("Animals Article Update Duplicate")
+                        .slug("animals-article-update-duplicate")
+                        .description("Animals")
+                        .active(true)
+                        .build()
+        );
+
+        Topic topic = topicRepository.save(
+                Topic.builder()
+                        .name("Sharks")
+                        .slug("sharks-article-update-duplicate")
+                        .description("Sharks")
+                        .category(category)
+                        .active(true)
+                        .build()
+        );
+
+        Article firstArticle = articleRepository.save(
+                Article.builder()
+                        .title("Sharks")
+                        .slug("sharks-update-duplicate-test")
+                        .shortDescription("Sharks article")
+                        .description("Description")
+                        .topic(topic)
+                        .published(true)
+                        .build()
+        );
+
+        articleRepository.save(
+                Article.builder()
+                        .title("Whales")
+                        .slug("whales-update-duplicate-test")
+                        .shortDescription("Whales article")
+                        .description("Description")
+                        .topic(topic)
+                        .published(true)
+                        .build()
+        );
+
+        String request = """
+            {
+                "title": "Sharks Updated",
+                "slug": "whales-update-duplicate-test",
+                "shortDescription": "Updated article",
+                "description": "Updated description",
+                "published": true,
+                "topicId": %d
+            }
+            """.formatted(topic.getId());
+
+        mockMvc.perform(
+                        put("/api/v1/articles/" + firstArticle.getId())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(request)
+                )
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").exists());
+    }
 }
