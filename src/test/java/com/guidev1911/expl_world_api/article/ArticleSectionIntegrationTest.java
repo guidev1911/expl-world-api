@@ -316,4 +316,26 @@ class ArticleSectionIntegrationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors").exists());
     }
+    @Test
+    void shouldReturn404WhenCreatingSectionForNonExistingArticle() throws Exception {
+
+        String request = """
+            {
+                "title": "Habitat",
+                "content": "O tubarão-branco vive em águas costeiras.",
+                "sectionType": "HABITAT",
+                "displayOrder": 1,
+                "active": true,
+                "articleId": 999999
+            }
+            """;
+
+        mockMvc.perform(
+                        post("/api/v1/article-sections")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(request)
+                )
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").exists());
+    }
 }
