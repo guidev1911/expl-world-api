@@ -335,4 +335,56 @@ class ArticleIntegrationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors").exists());
     }
+    @Test
+    void shouldReturn409WhenCreatingArticleWithDuplicateSlug() throws Exception {
+
+        Category category = categoryRepository.save(
+                Category.builder()
+                        .name("Animals Article Duplicate")
+                        .slug("animals-article-duplicate")
+                        .description("Animals")
+                        .active(true)
+                        .build()
+        );
+
+        Topic topic = topicRepository.save(
+                Topic.builder()
+                        .name("Sharks")
+                        .slug("sharks-article-duplicate")
+                        .description("Sharks")
+                        .category(category)
+                        .active(true)
+                        .build()
+        );
+
+        articleRepository.save(
+                Article.builder()
+                        .title("Great White Shark")
+                        .slug("great-white-shark-duplicate")
+                        .shortDescription("Shark article")
+                        .description("Description")
+                        .topic(topic)
+                        .published(true)
+                        .build()
+        );
+
+        String request = """
+            {
+                "title": "Another Great White Shark",
+                "slug": "great-white-shark-duplicate",
+                "shortDescription": "Duplicate article",
+                "description": "Duplicate description",
+                "published": true,
+                "topicId": %d
+            }
+            """.formatted(topic.getId());
+
+        mockMvc.perform(
+                        post("/api/v1/articles")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(request)
+                )
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").exists());
+    }
 }
