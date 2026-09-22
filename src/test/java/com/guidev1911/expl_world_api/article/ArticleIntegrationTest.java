@@ -314,4 +314,25 @@ class ArticleIntegrationTest {
                 .andExpect(jsonPath("$.page.number").value(0))
                 .andExpect(jsonPath("$.page.size").value(10));
     }
+    @Test
+    void shouldReturn400WhenCreatingArticleWithInvalidData() throws Exception {
+
+        String request = """
+            {
+                "title": "",
+                "slug": "",
+                "shortDescription": "",
+                "description": "Invalid article",
+                "topicId": null
+            }
+            """;
+
+        mockMvc.perform(
+                        post("/api/v1/articles")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(request)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors").exists());
+    }
 }
