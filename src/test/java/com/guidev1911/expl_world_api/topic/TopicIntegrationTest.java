@@ -277,4 +277,43 @@ class TopicIntegrationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors").exists());
     }
+    @Test
+    void shouldReturn409WhenCreatingTopicWithDuplicateSlug() throws Exception {
+
+        Category category = categoryRepository.save(
+                Category.builder()
+                        .name("Animals Duplicate Topic")
+                        .slug("animals-topic-duplicate")
+                        .description("Animals")
+                        .active(true)
+                        .build()
+        );
+
+        topicRepository.save(
+                Topic.builder()
+                        .name("Sharks")
+                        .slug("sharks-duplicate-test")
+                        .description("Sharks")
+                        .category(category)
+                        .active(true)
+                        .build()
+        );
+
+        String request = """
+            {
+                "name": "Sharks Duplicate",
+                "slug": "sharks-duplicate-test",
+                "description": "Duplicate topic",
+                "categoryId": %d
+            }
+            """.formatted(category.getId());
+
+        mockMvc.perform(
+                        post("/api/v1/topics")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(request)
+                )
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").exists());
+    }
 }
