@@ -294,4 +294,26 @@ class ArticleSectionIntegrationTest {
 
         assertFalse(deletedSection.getActive());
     }
+    @Test
+    void shouldReturn400WhenCreatingArticleSectionWithInvalidData() throws Exception {
+
+        String request = """
+            {
+                "title": "",
+                "content": "",
+                "sectionType": "",
+                "displayOrder": null,
+                "active": true,
+                "articleId": null
+            }
+            """;
+
+        mockMvc.perform(
+                        post("/api/v1/article-sections")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(request)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors").exists());
+    }
 }
