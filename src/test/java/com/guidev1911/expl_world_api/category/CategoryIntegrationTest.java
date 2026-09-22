@@ -210,4 +210,42 @@ class CategoryIntegrationTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").exists());
     }
+    @Test
+    void shouldReturn409WhenUpdatingCategoryWithDuplicateSlug() throws Exception {
+
+        Category firstCategory = categoryRepository.save(
+                Category.builder()
+                        .name("Animals")
+                        .slug("animals-update-duplicate-test")
+                        .description("Animals")
+                        .active(true)
+                        .build()
+        );
+
+        categoryRepository.save(
+                Category.builder()
+                        .name("Technology")
+                        .slug("technology-update-duplicate-test")
+                        .description("Technology")
+                        .active(true)
+                        .build()
+        );
+
+        String request = """
+            {
+                "name": "Animals Updated",
+                "slug": "technology-update-duplicate-test",
+                "description": "Updated category",
+                "active": true
+            }
+            """;
+
+        mockMvc.perform(
+                        put("/api/v1/categories/" + firstCategory.getId())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(request)
+                )
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").exists());
+    }
 }
