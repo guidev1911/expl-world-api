@@ -248,4 +248,33 @@ class TopicIntegrationTest {
                 .andExpect(jsonPath("$.page.number").value(0))
                 .andExpect(jsonPath("$.page.size").value(10));
     }
+    @Test
+    void shouldReturn400WhenCreatingTopicWithInvalidData() throws Exception {
+
+        Category category = categoryRepository.save(
+                Category.builder()
+                        .name("Animals Validation")
+                        .slug("animals-topic-validation")
+                        .description("Animals")
+                        .active(true)
+                        .build()
+        );
+
+        String request = """
+            {
+                "name": "",
+                "slug": "",
+                "description": "Invalid topic",
+                "categoryId": %d
+            }
+            """.formatted(category.getId());
+
+        mockMvc.perform(
+                        post("/api/v1/topics")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(request)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors").exists());
+    }
 }
