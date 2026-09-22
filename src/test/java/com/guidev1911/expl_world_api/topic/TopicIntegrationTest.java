@@ -316,4 +316,54 @@ class TopicIntegrationTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").exists());
     }
+    @Test
+    void shouldReturn409WhenUpdatingTopicWithDuplicateSlug() throws Exception {
+
+        Category category = categoryRepository.save(
+                Category.builder()
+                        .name("Animals Topic Update Duplicate")
+                        .slug("animals-topic-update-duplicate")
+                        .description("Animals")
+                        .active(true)
+                        .build()
+        );
+
+        Topic firstTopic = topicRepository.save(
+                Topic.builder()
+                        .name("Sharks")
+                        .slug("sharks-update-duplicate-test")
+                        .description("Sharks")
+                        .category(category)
+                        .active(true)
+                        .build()
+        );
+
+        topicRepository.save(
+                Topic.builder()
+                        .name("Whales")
+                        .slug("whales-update-duplicate-test")
+                        .description("Whales")
+                        .category(category)
+                        .active(true)
+                        .build()
+        );
+
+        String request = """
+            {
+                "name": "Sharks Updated",
+                "slug": "whales-update-duplicate-test",
+                "description": "Updated topic",
+                "active": true,
+                "categoryId": %d
+            }
+            """.formatted(category.getId());
+
+        mockMvc.perform(
+                        put("/api/v1/topics/" + firstTopic.getId())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(request)
+                )
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").exists());
+    }
 }
