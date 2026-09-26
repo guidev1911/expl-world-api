@@ -18,6 +18,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import com.guidev1911.expl_world_api.auth.entity.User;
+import com.guidev1911.expl_world_api.auth.repository.UserRepository;
+import com.guidev1911.expl_world_api.auth.security.JwtService;
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -32,6 +37,36 @@ class TopicIntegrationTest {
 
     @Autowired
     private TopicRepository topicRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtService jwtService;
+
+    private String token;
+
+    @BeforeEach
+    void setUp() {
+
+        User user = userRepository.save(
+                User.builder()
+                        .name("Test Admin")
+                        .email("test-admin@explworld.com")
+                        .password(passwordEncoder.encode("12345678"))
+                        .role("ADMIN")
+                        .active(true)
+                        .build()
+        );
+
+        token = jwtService.generateToken(
+                user.getEmail(),
+                user.getRole()
+        );
+    }
 
     @Test
     void shouldCreateTopic() throws Exception {
@@ -56,6 +91,7 @@ class TopicIntegrationTest {
 
         mockMvc.perform(
                         post("/api/v1/topics")
+                                .header("Authorization", "Bearer " + token)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(request)
                 )
@@ -99,6 +135,7 @@ class TopicIntegrationTest {
                         get("/api/v1/topics/category/"
                                 + category.getId()
                                 + "/sharks-get-test")
+                                .header("Authorization", "Bearer " + token)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Sharks"))
@@ -122,6 +159,7 @@ class TopicIntegrationTest {
                         get("/api/v1/topics/category/"
                                 + category.getId()
                                 + "/topic-does-not-exist")
+                                .header("Authorization", "Bearer " + token)
                 )
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Topic not found"));
@@ -160,6 +198,7 @@ class TopicIntegrationTest {
 
         mockMvc.perform(
                         put("/api/v1/topics/" + topic.getId())
+                                .header("Authorization", "Bearer " + token)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(request)
                 )
@@ -193,6 +232,7 @@ class TopicIntegrationTest {
 
         mockMvc.perform(
                         delete("/api/v1/topics/" + topic.getId())
+                                .header("Authorization", "Bearer " + token)
                 )
                 .andExpect(status().isNoContent());
 
@@ -235,6 +275,7 @@ class TopicIntegrationTest {
 
         mockMvc.perform(
                         get("/api/v1/topics/category/" + category.getId())
+                                .header("Authorization", "Bearer " + token)
                                 .param("page", "0")
                                 .param("size", "10")
                 )
@@ -271,6 +312,7 @@ class TopicIntegrationTest {
 
         mockMvc.perform(
                         post("/api/v1/topics")
+                                .header("Authorization", "Bearer " + token)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(request)
                 )
@@ -310,6 +352,7 @@ class TopicIntegrationTest {
 
         mockMvc.perform(
                         post("/api/v1/topics")
+                                .header("Authorization", "Bearer " + token)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(request)
                 )
@@ -360,6 +403,7 @@ class TopicIntegrationTest {
 
         mockMvc.perform(
                         put("/api/v1/topics/" + firstTopic.getId())
+                                .header("Authorization", "Bearer " + token)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(request)
                 )
