@@ -20,6 +20,11 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import com.guidev1911.expl_world_api.auth.entity.User;
+import com.guidev1911.expl_world_api.auth.repository.UserRepository;
+import com.guidev1911.expl_world_api.auth.security.JwtService;
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -37,6 +42,36 @@ class ArticleIntegrationTest {
 
     @Autowired
     private ArticleRepository articleRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtService jwtService;
+
+    private String token;
+
+    @BeforeEach
+    void setUp() {
+
+        User user = userRepository.save(
+                User.builder()
+                        .name("Test Admin")
+                        .email("test-admin@explworld.com")
+                        .password(passwordEncoder.encode("12345678"))
+                        .role("ADMIN")
+                        .active(true)
+                        .build()
+        );
+
+        token = jwtService.generateToken(
+                user.getEmail(),
+                user.getRole()
+        );
+    }
 
     @Test
     void shouldCreateArticle() throws Exception {
@@ -73,6 +108,7 @@ class ArticleIntegrationTest {
 
         mockMvc.perform(
                         post("/api/v1/articles")
+                                .header("Authorization", "Bearer " + token)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(request)
                 )
@@ -125,6 +161,7 @@ class ArticleIntegrationTest {
                         get("/api/v1/articles/topic/"
                                 + topic.getId()
                                 + "/great-white-shark-get")
+                                .header("Authorization", "Bearer " + token)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Great White Shark"))
@@ -157,6 +194,7 @@ class ArticleIntegrationTest {
                         get("/api/v1/articles/topic/"
                                 + topic.getId()
                                 + "/article-does-not-exist")
+                                .header("Authorization", "Bearer " + token)
                 )
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Article not found"));
@@ -205,6 +243,7 @@ class ArticleIntegrationTest {
 
         mockMvc.perform(
                         put("/api/v1/articles/" + article.getId())
+                                .header("Authorization", "Bearer " + token)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(request)
                 )
@@ -249,6 +288,7 @@ class ArticleIntegrationTest {
 
         mockMvc.perform(
                         delete("/api/v1/articles/" + article.getId())
+                                .header("Authorization", "Bearer " + token)
                 )
                 .andExpect(status().isNoContent());
 
@@ -301,6 +341,7 @@ class ArticleIntegrationTest {
 
         mockMvc.perform(
                         get("/api/v1/articles/topic/" + topic.getId())
+                                .header("Authorization", "Bearer " + token)
                                 .param("page", "0")
                                 .param("size", "10")
                 )
@@ -329,6 +370,7 @@ class ArticleIntegrationTest {
 
         mockMvc.perform(
                         post("/api/v1/articles")
+                                .header("Authorization", "Bearer " + token)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(request)
                 )
@@ -381,6 +423,7 @@ class ArticleIntegrationTest {
 
         mockMvc.perform(
                         post("/api/v1/articles")
+                                .header("Authorization", "Bearer " + token)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(request)
                 )
@@ -444,6 +487,7 @@ class ArticleIntegrationTest {
 
         mockMvc.perform(
                         put("/api/v1/articles/" + firstArticle.getId())
+                                .header("Authorization", "Bearer " + token)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(request)
                 )
