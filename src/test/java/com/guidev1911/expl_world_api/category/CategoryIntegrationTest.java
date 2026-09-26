@@ -17,6 +17,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import com.guidev1911.expl_world_api.auth.entity.User;
+import com.guidev1911.expl_world_api.auth.repository.UserRepository;
+import com.guidev1911.expl_world_api.auth.security.JwtService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.junit.jupiter.api.BeforeEach;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -28,6 +33,36 @@ class CategoryIntegrationTest {
 
     @Autowired
     private CategoryRepository categoryRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtService jwtService;
+
+    private String token;
+
+    @BeforeEach
+    void setUp() {
+
+        User user = userRepository.save(
+                User.builder()
+                        .name("Test Admin")
+                        .email("test-admin@explworld.com")
+                        .password(passwordEncoder.encode("12345678"))
+                        .role("ADMIN")
+                        .active(true)
+                        .build()
+        );
+
+        token = jwtService.generateToken(
+                user.getEmail(),
+                user.getRole()
+        );
+    }
 
     @Test
     void shouldCreateCategory() throws Exception {
@@ -41,6 +76,7 @@ class CategoryIntegrationTest {
                 """;
 
         mockMvc.perform(post("/api/v1/categories")
+                        .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request))
                 .andExpect(status().isCreated())
@@ -68,6 +104,7 @@ class CategoryIntegrationTest {
 
         mockMvc.perform(
                         get("/api/v1/categories/animals-integration-test")
+                                .header("Authorization", "Bearer " + token)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Animals"))
@@ -97,6 +134,7 @@ class CategoryIntegrationTest {
 
         mockMvc.perform(
                         put("/api/v1/categories/" + category.getId())
+                                .header("Authorization", "Bearer " + token)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(request)
                 )
@@ -119,6 +157,7 @@ class CategoryIntegrationTest {
 
         mockMvc.perform(
                         delete("/api/v1/categories/" + category.getId())
+                                .header("Authorization", "Bearer " + token)
                 )
                 .andExpect(status().isNoContent());
 
@@ -150,6 +189,7 @@ class CategoryIntegrationTest {
 
         mockMvc.perform(
                         get("/api/v1/categories")
+                                .header("Authorization", "Bearer " + token)
                                 .param("page", "0")
                                 .param("size", "10")
                 )
@@ -176,6 +216,7 @@ class CategoryIntegrationTest {
 
         mockMvc.perform(
                         post("/api/v1/categories")
+                                .header("Authorization", "Bearer " + token)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(request)
                 )
@@ -204,6 +245,7 @@ class CategoryIntegrationTest {
 
         mockMvc.perform(
                         post("/api/v1/categories")
+                                .header("Authorization", "Bearer " + token)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(request)
                 )
@@ -242,6 +284,7 @@ class CategoryIntegrationTest {
 
         mockMvc.perform(
                         put("/api/v1/categories/" + firstCategory.getId())
+                                .header("Authorization", "Bearer " + token)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(request)
                 )
