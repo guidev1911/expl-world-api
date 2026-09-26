@@ -1,6 +1,8 @@
 package com.guidev1911.expl_world_api.auth.controller;
 
 import com.guidev1911.expl_world_api.auth.dto.CreateUserRequest;
+import com.guidev1911.expl_world_api.auth.dto.LoginRequest;
+import com.guidev1911.expl_world_api.auth.dto.LoginResponse;
 import com.guidev1911.expl_world_api.auth.dto.UserResponse;
 import com.guidev1911.expl_world_api.auth.entity.User;
 import com.guidev1911.expl_world_api.auth.service.UserService;
@@ -35,5 +37,15 @@ public class UserController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(response);
+    }
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(
+            @Valid @RequestBody LoginRequest request
+    ) {
+        String token = userService.login(request);
+
+        return ResponseEntity.ok(
+                new LoginResponse(token)
+        );
     }
 }
