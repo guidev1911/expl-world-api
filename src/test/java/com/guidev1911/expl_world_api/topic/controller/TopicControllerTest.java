@@ -1,7 +1,10 @@
-package com.guidev1911.expl_world_api.topic.controller;
+ package com.guidev1911.expl_world_api.topic.controller;
 
+import com.guidev1911.expl_world_api.auth.repository.UserRepository;
 import com.guidev1911.expl_world_api.exception.GlobalExceptionHandler;
 import com.guidev1911.expl_world_api.exception.ResourceNotFoundException;
+import com.guidev1911.expl_world_api.auth.security.JwtService;
+import com.guidev1911.expl_world_api.auth.security.JwtAuthenticationFilter;
 import com.guidev1911.expl_world_api.topic.dto.response.TopicResponse;
 import com.guidev1911.expl_world_api.topic.service.TopicService;
 import org.junit.jupiter.api.Test;
@@ -9,11 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
 import java.time.LocalDateTime;
-import org.springframework.security.test.context.support.WithMockUser;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -22,7 +24,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(TopicController.class)
+@WebMvcTest(controllers = TopicController.class)
 @Import(GlobalExceptionHandler.class)
 class TopicControllerTest {
 
@@ -31,6 +33,12 @@ class TopicControllerTest {
 
     @MockitoBean
     private TopicService topicService;
+
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private UserRepository userRepository;
 
     @Test
     @WithMockUser(username = "test-admin", roles = "ADMIN")
@@ -61,9 +69,11 @@ class TopicControllerTest {
                 }
                 """;
 
-        mockMvc.perform(post("/api/v1/topics")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(request))
+        mockMvc.perform(
+                        post("/api/v1/topics")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(request)
+                )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("Sharks"))
@@ -74,12 +84,13 @@ class TopicControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "test-admin", roles = "ADMIN")
     void shouldReturnTopicNotFound() throws Exception {
 
         when(topicService.findBySlug(1L, "sharks"))
-                .thenThrow(new ResourceNotFoundException(
-                        "Topic not found"
-                ));
+                .thenThrow(
+                        new ResourceNotFoundException("Topic not found")
+                );
 
         mockMvc.perform(
                         get("/api/v1/topics/category/1/sharks")
@@ -89,3 +100,4 @@ class TopicControllerTest {
                         .value("Topic not found"));
     }
 }
+
