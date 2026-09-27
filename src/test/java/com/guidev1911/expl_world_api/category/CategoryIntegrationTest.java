@@ -191,7 +191,7 @@ class CategoryIntegrationTest {
                         get("/api/v1/categories")
                                 .header("Authorization", "Bearer " + token)
                                 .param("page", "0")
-                                .param("size", "10")
+                                .param("size", "20")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
@@ -201,7 +201,7 @@ class CategoryIntegrationTest {
                                 "technology-pagination-test"
                         )))
                 .andExpect(jsonPath("$.page.number").value(0))
-                .andExpect(jsonPath("$.page.size").value(10));
+                .andExpect(jsonPath("$.page.size").value(20));
     }
     @Test
     void shouldReturn400WhenCreatingCategoryWithInvalidData() throws Exception {

@@ -4,8 +4,7 @@ import com.guidev1911.expl_world_api.auth.entity.User;
 import com.guidev1911.expl_world_api.auth.repository.UserRepository;
 import com.guidev1911.expl_world_api.auth.security.JwtService;
 import com.guidev1911.expl_world_api.category.dto.request.CreateCategoryRequest;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,9 +14,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import com.guidev1911.expl_world_api.category.repository.CategoryRepository;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -200,5 +196,17 @@ class SecurityIntegrationTest {
                             """.formatted(UUID.randomUUID()))
                 )
                 .andExpect(status().isUnauthorized());
+    }
+    @Test
+    void shouldAllowAuthenticatedUserToReadCategories() throws Exception {
+
+        mockMvc.perform(
+                        get("/api/v1/categories")
+                                .header(
+                                        "Authorization",
+                                        "Bearer " + userToken
+                                )
+                )
+                .andExpect(status().isOk());
     }
 }
