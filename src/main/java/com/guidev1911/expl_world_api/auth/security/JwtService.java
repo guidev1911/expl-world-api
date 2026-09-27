@@ -63,4 +63,16 @@ public class JwtService {
             return false;
         }
     }
+    public String generateExpiredToken(String email, String role) {
+
+        Date now = new Date();
+
+        return Jwts.builder()
+                .subject(email)
+                .claim("role", role)
+                .issuedAt(new Date(now.getTime() - 10_000))
+                .expiration(new Date(now.getTime() - 5_000))
+                .signWith(secretKey)
+                .compact();
+    }
 }
