@@ -11,9 +11,10 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
+import com.guidev1911.expl_world_api.auth.repository.UserRepository;
+import com.guidev1911.expl_world_api.auth.security.JwtService;
+import org.springframework.security.test.context.support.WithMockUser;
 import java.time.LocalDateTime;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,7 +33,14 @@ class CategoryControllerTest {
     @MockitoBean
     private CategoryService categoryService;
 
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private UserRepository userRepository;
+
     @Test
+    @WithMockUser(username = "test-admin", roles = "ADMIN")
     void shouldCreateCategory() throws Exception {
 
         CategoryResponse response = new CategoryResponse(
@@ -69,6 +77,7 @@ class CategoryControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "test-admin", roles = "ADMIN")
     void shouldReturnCategoryNotFound() throws Exception {
 
         when(categoryService.findBySlug("animals"))
