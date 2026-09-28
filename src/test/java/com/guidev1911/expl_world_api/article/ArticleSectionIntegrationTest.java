@@ -27,10 +27,12 @@ import com.guidev1911.expl_world_api.auth.repository.UserRepository;
 import com.guidev1911.expl_world_api.auth.security.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+@ActiveProfiles("test")
 class ArticleSectionIntegrationTest {
 
     @Autowired

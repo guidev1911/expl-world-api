@@ -15,12 +15,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import com.guidev1911.expl_world_api.category.repository.CategoryRepository;
 import java.util.UUID;
-
+import org.springframework.test.context.ActiveProfiles;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+
+
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 class SecurityIntegrationTest {
 
     @Autowired
