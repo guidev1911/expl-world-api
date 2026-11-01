@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -25,12 +26,15 @@ public class SecurityConfig {
             throws Exception {
 
         http
+                .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
+
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
                         )
                 )
+
                 .exceptionHandling(exception ->
                         exception.authenticationEntryPoint(
                                 (request, response, authException) ->
@@ -39,10 +43,12 @@ public class SecurityConfig {
                                         )
                         )
                 )
+
                 .authorizeHttpRequests(auth -> auth
 
-                        // Rotas públicas
+                        // Rotas públicas de autenticação e documentação
                         .requestMatchers(
+                                "/api/v1/auth",
                                 "/api/v1/auth/**",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
@@ -51,13 +57,17 @@ public class SecurityConfig {
                         // Consultas públicas
                         .requestMatchers(
                                 HttpMethod.GET,
+                                "/api/v1/categories",
                                 "/api/v1/categories/**",
+                                "/api/v1/topics",
                                 "/api/v1/topics/**",
+                                "/api/v1/articles",
                                 "/api/v1/articles/**",
+                                "/api/v1/article-sections",
                                 "/api/v1/article-sections/**"
                         ).permitAll()
 
-                        // Apenas ADMIN pode criar
+                        // Criação exclusiva de ADMIN
                         .requestMatchers(HttpMethod.POST,
                                 "/api/v1/categories/**",
                                 "/api/v1/topics/**",
@@ -65,7 +75,7 @@ public class SecurityConfig {
                                 "/api/v1/article-sections/**"
                         ).hasRole("ADMIN")
 
-                        // Apenas ADMIN pode alterar
+                        // Alteração exclusiva de ADMIN
                         .requestMatchers(HttpMethod.PUT,
                                 "/api/v1/categories/**",
                                 "/api/v1/topics/**",
@@ -73,7 +83,7 @@ public class SecurityConfig {
                                 "/api/v1/article-sections/**"
                         ).hasRole("ADMIN")
 
-                        // Apenas ADMIN pode excluir
+                        // Exclusão exclusiva de ADMIN
                         .requestMatchers(HttpMethod.DELETE,
                                 "/api/v1/categories/**",
                                 "/api/v1/topics/**",
@@ -81,9 +91,10 @@ public class SecurityConfig {
                                 "/api/v1/article-sections/**"
                         ).hasRole("ADMIN")
 
-                        // Todo o restante exige autenticação
+                        // Demais requisições exigem autenticação
                         .anyRequest().authenticated()
                 )
+
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class
