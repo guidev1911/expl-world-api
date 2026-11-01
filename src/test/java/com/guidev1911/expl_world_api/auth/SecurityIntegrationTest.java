@@ -19,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import com.guidev1911.expl_world_api.category.repository.CategoryRepository;
 import java.util.UUID;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import com.guidev1911.expl_world_api.category.entity.Category;
 import org.springframework.test.context.ActiveProfiles;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -378,4 +379,92 @@ class SecurityIntegrationTest {
                             """.formatted(articleId))
         ).andExpect(status().isCreated());
     }
+
+    @Test
+    void shouldAllowUnauthenticatedUserToReadCategories() throws Exception {
+
+        mockMvc.perform(
+                get("/api/v1/categories")
+        ).andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldRegisterUserWithDefaultUserRole() throws Exception {
+
+        String email = "new-user-" + UUID.randomUUID() + "@explworld.com";
+
+        mockMvc.perform(
+                        post("/api/v1/auth/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                            {
+                                "name": "New User",
+                                "email": "%s",
+                                "password": "12345678",
+                                "role": "ADMIN"
+                            }
+                            """.formatted(email))
+                )
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(jsonPath("$.role").value("USER"));
+    }
+
+    @Test
+    void shouldLoginAndReturnJwtToken() throws Exception {
+
+        mockMvc.perform(
+                        post("/api/v1/auth/users/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                            {
+                                "email": "security-admin@explworld.com",
+                                "password": "12345678"
+                            }
+                            """)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").isNotEmpty());
+    }
+
+    @Test
+    void shouldRejectLoginWithIncorrectPassword() throws Exception {
+
+        mockMvc.perform(
+                post("/api/v1/auth/users/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                                "email": "security-admin@explworld.com",
+                                "password": "senha-errada"
+                            }
+                            """)
+        ).andExpect(status().isConflict());
+    }
+
+    @Test
+    void shouldRejectLoginWithInactiveUser() throws Exception {
+
+        User inactiveUser = userRepository.save(
+                User.builder()
+                        .name("Inactive User")
+                        .email("inactive@explworld.com")
+                        .password(passwordEncoder.encode("12345678"))
+                        .role("USER")
+                        .active(false)
+                        .build()
+        );
+
+        mockMvc.perform(
+                post("/api/v1/auth/users/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                                "email": "%s",
+                                "password": "12345678"
+                            }
+                            """.formatted(inactiveUser.getEmail()))
+        ).andExpect(status().isConflict());
+    }
+
 }
+

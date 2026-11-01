@@ -30,7 +30,7 @@ public class UserService {
                 .name(request.name().trim())
                 .email(email)
                 .password(passwordEncoder.encode(request.password()))
-                .role("ADMIN")
+                .role("USER")
                 .active(true)
                 .build();
 
