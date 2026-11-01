@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import com.guidev1911.expl_world_api.article.entity.Article;
+import com.guidev1911.expl_world_api.article.repository.ArticleRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import com.guidev1911.expl_world_api.category.repository.CategoryRepository;
@@ -47,6 +49,10 @@ class SecurityIntegrationTest {
     @Autowired
     private TopicRepository topicRepository;
 
+    @Autowired
+    private ArticleRepository articleRepository;
+
+    private Long articleId;
     private Long topicId;
     private Long categoryId;
     private String adminToken;
@@ -107,6 +113,19 @@ class SecurityIntegrationTest {
         );
 
         topicId = topic.getId();
+
+        Article article = articleRepository.save(
+                Article.builder()
+                        .title("Test Article")
+                        .slug("security-section-" + UUID.randomUUID())
+                        .shortDescription("Article for security tests")
+                        .description("Test description")
+                        .published(true)
+                        .topic(topic)
+                        .build()
+        );
+
+        articleId = article.getId();
     }
 
     @Test
@@ -317,6 +336,46 @@ class SecurityIntegrationTest {
                                 "topicId": %d
                             }
                             """.formatted(slug, topicId))
+        ).andExpect(status().isCreated());
+    }
+
+    @Test
+    void shouldReturn403WhenUserCreatesArticleSection() throws Exception {
+
+        mockMvc.perform(
+                post("/api/v1/article-sections")
+                        .header("Authorization", "Bearer " + userToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                                "title": "Overview",
+                                "content": "Section content",
+                                "sectionType": "OVERVIEW",
+                                "displayOrder": 1,
+                                "active": true,
+                                "articleId": %d
+                            }
+                            """.formatted(articleId))
+        ).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void shouldAllowAdminToCreateArticleSection() throws Exception {
+
+        mockMvc.perform(
+                post("/api/v1/article-sections")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                                "title": "Overview",
+                                "content": "Section content",
+                                "sectionType": "OVERVIEW",
+                                "displayOrder": 1,
+                                "active": true,
+                                "articleId": %d
+                            }
+                            """.formatted(articleId))
         ).andExpect(status().isCreated());
     }
 }
