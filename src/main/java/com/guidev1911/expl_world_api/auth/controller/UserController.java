@@ -7,6 +7,7 @@ import com.guidev1911.expl_world_api.auth.dto.UserResponse;
 import com.guidev1911.expl_world_api.auth.entity.User;
 import com.guidev1911.expl_world_api.auth.service.UserService;
 import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/auth/users")
+@SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
 public class UserController {
 

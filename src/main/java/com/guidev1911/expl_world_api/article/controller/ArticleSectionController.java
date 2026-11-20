@@ -4,6 +4,7 @@ import com.guidev1911.expl_world_api.article.dto.request.CreateArticleSectionReq
 import com.guidev1911.expl_world_api.article.dto.request.UpdateArticleSectionRequest;
 import com.guidev1911.expl_world_api.article.dto.response.ArticleSectionResponse;
 import com.guidev1911.expl_world_api.article.service.ArticleSectionService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/article-sections")
+@SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
 public class ArticleSectionController {
 

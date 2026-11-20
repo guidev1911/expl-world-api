@@ -6,6 +6,7 @@ import com.guidev1911.expl_world_api.article.dto.response.ArticleResponse;
 import com.guidev1911.expl_world_api.article.service.ArticleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.HttpStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/articles")
+@SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
 public class ArticleController {
 

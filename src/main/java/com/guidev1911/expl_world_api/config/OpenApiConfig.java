@@ -1,10 +1,10 @@
-
 package com.guidev1911.expl_world_api.config;
 
-import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
+import io.swagger.v3.oas.models.parameters.Parameter;
+import io.swagger.v3.oas.models.media.StringSchema;
+import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -13,17 +13,31 @@ import org.springframework.context.annotation.Configuration;
         name = "bearerAuth",
         type = SecuritySchemeType.HTTP,
         scheme = "bearer",
-        bearerFormat = "JWT",
-        description = "Informe o token JWT"
+        bearerFormat = "JWT"
 )
 public class OpenApiConfig {
 
     @Bean
-    public OpenAPI explWorldOpenAPI() {
-        return new OpenAPI()
-                .info(new Info()
-                        .title("EXPL WORLD API")
-                        .description("API for EXPL WORLD educational content platform")
-                        .version("1.0.0"));
+    public OperationCustomizer pageableCustomizer() {
+        return (operation, handlerMethod) -> {
+
+            if (operation.getParameters() != null) {
+                operation.getParameters().removeIf(parameter ->
+                        "sort".equals(parameter.getName())
+                );
+            }
+
+            operation.addParametersItem(
+                    new Parameter()
+                            .name("sort")
+                            .in("query")
+                            .description("Ordenação: campo,direção. Exemplo: name,asc")
+                            .example("name,asc")
+                            .required(false)
+                            .schema(new StringSchema())
+            );
+
+            return operation;
+        };
     }
 }

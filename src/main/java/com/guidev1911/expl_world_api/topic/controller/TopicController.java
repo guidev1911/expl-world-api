@@ -7,6 +7,7 @@ import com.guidev1911.expl_world_api.topic.service.TopicService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/topics")
+@SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
 public class TopicController {
 
