@@ -3,6 +3,8 @@ package com.guidev1911.expl_world_api.article.entity;
 import com.guidev1911.expl_world_api.topic.entity.Topic;
 import jakarta.persistence.*;
 import lombok.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import java.time.LocalDateTime;
 
@@ -45,6 +47,15 @@ public class Article {
     @Column(nullable = false)
     @Builder.Default
     private Boolean published = false;
+
+    @OneToMany(
+            mappedBy = "article",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @OrderBy("displayOrder ASC")
+    @Builder.Default
+    private List<ArticleImage> images = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(
